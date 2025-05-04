@@ -2,21 +2,338 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Una Deriva a Caso</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Deriva Selector</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Reset mobile */
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      background-color: #f4f1e8;
+      color: #1f2d3d;
+      margin: 0;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      padding: 1.5rem;
+      border: 2px dashed #accbd9;
+      border-radius: 12px;
+      background-color: #ffffffd8;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      color: #327da8;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .intro {
+      font-style: italic;
+      color: #4f4f4f;
+      margin-bottom: 2rem;
+      font-size: clamp(0.9rem, 3.5vw, 1rem);
+    }
+
+    button {
+      background-color: #327da8;
+      color: white;
+      border: none;
+      padding: 1rem 1.8rem;
+      font-size: clamp(1rem, 4vw, 1.1rem);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 280px;
+      touch-action: manipulation;
+    }
+
+    button:hover, button:focus {
+      background-color: #265e7a;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    #derivaBox {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      background-color: #eaf3f7;
+      border-left: 4px solid #327da8;
+      text-align: left;
+      border-radius: 0 8px 8px 0;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #derivaBox.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #derivaBox h2 {
+      font-size: clamp(1.2rem, 5vw, 1.5rem);
+      margin-top: 0;
+      margin-bottom: 0.8rem;
+      color: #2a6a8f;
+    }
+
+    #descrizioneDeriva {
+      margin-bottom: 0;
+      font-size: clamp(0.9rem, 3.5vw, 1rem);
+    }
+
+    .regola {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #1f2d3d;
+      font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+      padding-top: 0.8rem;
+      border-top: 1px dashed #accbd9;
+    }
+
+    .counter {
+      font-size: clamp(0.8rem, 3vw, 0.9rem);
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
+    /* Animazione pulsante */
+    @keyframes subtlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    button.loading {
+      animation: subtlePulse 1.5s ease-in-out infinite;
+    }
+
+    /* Ottimizzazioni per schermi grandi */
+    @media (min-width: 768px) {
+      main {
+        padding: 2rem;
+      }
+      
+      button {
+        padding: 0.8rem 1.5rem;
+        max-width: none;
+      }
+    }
+  </style>
 </head>
 <body>
   <main>
-    <h1>🌀 Una Deriva a Caso</h1>
+    <h1>🌀 Deriva Selector</h1>
     <p class="intro">Scopri la tua deriva psicogeografica casuale. Clicca e cammina.</p>
     <button id="generateBtn">🎲 Scopri una deriva</button>
-    <section id="derivaBox" class="hidden">
+    <p class="counter">Derive disponibili: <span id="counter">0</span></p>
+    <section id="derivaBox">
       <h2 id="nomeDeriva"></h2>
       <p id="descrizioneDeriva"></p>
       <p class="regola"><strong>Regola extra:</strong> <span id="regolaExtra"></span></p>
     </section>
   </main>
-  <script src="derive.js"></script>
+  <script>
+    const derive =  [
+      {
+        nome: "Deriva libera assoluta",
+        descrizione: "Si cammina senza scopo, lasciandosi guidare dalle atmosfere dei luoghi.",
+        regola: "Gira ogni volta che senti una voce femminile."
+      },
+      {
+        nome: "Deriva regolata",
+        descrizione: "Si stabilisce una regola arbitraria per destrutturare la mobilità (es. gira a destra a ogni fontana).",
+        regola: "Segui la persona davanti a te finché svolta."
+      },
+      {
+        nome: "Mappa di un'altra città",
+        descrizione: "Camminare nella propria città seguendo la mappa di un'altra, creando collisioni tra spazio immaginato e reale.",
+        regola: "Fermati per 10 secondi ogni volta che vedi una finestra aperta."
+      },
+      {
+        nome: "Suddivisione temporale",
+        descrizione: "Deriva con limiti di tempo precisi per ogni zona: es. 3 minuti per ogni strada percorsa.",
+        regola: "Ogni volta che vedi il colore rosso, cambia lato della strada."
+      },
+      {
+        nome: "Deriva sonora",
+        descrizione: "Camminare ascoltando i suoni della città come guida.",
+        regola: "Segui la persona davanti a te finché svolta."
+      },
+      {
+        nome: "Deriva olfattiva",
+        descrizione: "Seguire gli odori urbani come indicazioni di cammino.",
+        regola: "Annota ogni parola scritta che leggi lungo il tragitto."
+      },
+      {
+        nome: "Deriva tattile",
+        descrizione: "Camminare toccando superfici, pareti, materiali.",
+        regola: "Se senti una sirena, chiudi gli occhi e fai un respiro profondo."
+      },
+      {
+        nome: "Deriva al buio",
+        descrizione: "Camminare a occhi chiusi con guida, per intensificare ascolto e fiducia.",
+        regola: "Cammina solo all'ombra."
+      },
+      {
+        nome: "Deriva della postura",
+        descrizione: "Alterare la propria postura durante la camminata per cambiare percezione.",
+        regola: "Se senti una sirena, chiudi gli occhi e fai un respiro profondo."
+      },
+      {
+        nome: "Deriva delle memorie",
+        descrizione: "Percorrere luoghi legati a ricordi personali.",
+        regola: "Cambia direzione se incroci una bicicletta."
+      },
+      {
+        nome: "Deriva spettrale",
+        descrizione: "Cercare presenze assenti, ascoltare fantasmi architettonici.",
+        regola: "Cammina solo all'ombra."
+      },
+      {
+        nome: "Deriva delle interruzioni",
+        descrizione: "Fermarsi quando qualcosa disturba o interrompe il flusso.",
+        regola: "Cambia direzione se incroci una bicicletta."
+      },
+      {
+        nome: "Deriva della soglia",
+        descrizione: "Camminare solo dove cambia lo spazio (archi, ponti, scalini).",
+        regola: "Tocca ogni oggetto metallico che incontri."
+      },
+      {
+        nome: "Deriva dei luoghi chiusi",
+        descrizione: "Mappare e osservare luoghi sbarrati, inaccessibili.",
+        regola: "Cammina solo all'ombra."
+      },
+      {
+        nome: "Deriva mitogeografica",
+        descrizione: "Camminare come se ogni luogo contenesse una storia mitica.",
+        regola: "Tocca ogni oggetto metallico che incontri."
+      },
+      {
+        nome: "Deriva simbolica",
+        descrizione: "Tradurre gli elementi urbani come simboli con significati personali.",
+        regola: "Fermati per 10 secondi ogni volta che vedi una finestra aperta."
+      },
+      {
+        nome: "Drift comparativo",
+        descrizione: "Due approcci opposti allo stesso spazio: poi confronto.",
+        regola: "Segui la persona davanti a te finché svolta."
+      },
+      {
+        nome: "Drift relazionale",
+        descrizione: "Camminare parlando con qualcuno: il tema guida la rotta.",
+        regola: "Fermati e ascolta quando senti un campanello."
+      },
+      {
+        nome: "Deriva queer",
+        descrizione: "Cercare comfort imprevisti, desideri e deviazioni dallo spazio normato.",
+        regola: "Cambia direzione se incroci una bicicletta."
+      },
+      {
+        nome: "Deriva migrante",
+        descrizione: "Cercare i segni di migrazione, accesso negato, reinvenzione.",
+        regola: "Se senti una sirena, chiudi gli occhi e fai un respiro profondo."
+      },
+      {
+        nome: "Deriva dell'invisibile",
+        descrizione: "Camminare come chi è ignorato: anziani, delivery, bambini.",
+        regola: "Ogni volta che vedi il colore rosso, cambia lato della strada."
+      },
+      {
+        nome: "Urban drifting CCRU-style",
+        descrizione: "Leggere la città come rete glitchata di segnali e attriti.",
+        regola: "Fermati e ascolta quando senti un campanello."
+      },
+      {
+        nome: "Deriva da codice QR",
+        descrizione: "Seguire QR disseminati che sbloccano contenuti nascosti.",
+        regola: "Se senti una sirena, chiudi gli occhi e fai un respiro profondo."
+      },
+      {
+        nome: "Drift aumentato (AR)",
+        descrizione: "Camminare con visioni e suoni alterati da realtà aumentata.",
+        regola: "Gira ogni volta che senti una voce femminile."
+      },
+      {
+        nome: "Drift di Google Street View",
+        descrizione: "Deriva virtuale da seduti: esplorazione remota.",
+        regola: "Annota ogni parola scritta che leggi lungo il tragitto."
+      },
+      {
+        nome: "Deriva vegetale",
+        descrizione: "Seguire la vegetazione urbana spontanea e i suoi percorsi.",
+        regola: "Se senti una sirena, chiudi gli occhi e fai un respiro profondo."
+      },
+      {
+        nome: "Deriva dell'aria",
+        descrizione: "Lasciarsi guidare dal vento, luce, umidità.",
+        regola: "Cambia direzione se incroci una bicicletta."
+      },
+      {
+        nome: "Deriva delle superfici",
+        descrizione: "Camminare toccando solo muri, seguendo linee o texture.",
+        regola: "Fermati per 10 secondi ogni volta che vedi una finestra aperta."
+      },
+      {
+        nome: "Deriva a punteggio",
+        descrizione: "Ogni oggetto/segno trovato è un punto: caccia poetica urbana.",
+        regola: "Tocca ogni oggetto metallico che incontri."
+      },
+      {
+        nome: "Deriva collettiva a mappa muta",
+        descrizione: "Ogni persona cammina e poi segna dove ha sentito 'qualcosa' su una mappa muta.",
+        regola: "Ogni volta che vedi il colore rosso, cambia lato della strada."
+      }
+    ];
+
+    // Aggiorna il contatore
+    document.getElementById('counter').textContent = derive.length;
+
+    const btn = document.getElementById('generateBtn');
+    const box = document.getElementById('derivaBox');
+    const nome = document.getElementById('nomeDeriva');
+    const desc = document.getElementById('descrizioneDeriva');
+    const regola = document.getElementById('regolaExtra');
+
+    btn.addEventListener('click', () => {
+      // Aggiungi feedback tattile
+      btn.classList.add('loading');
+      box.classList.remove('visible');
+      
+      // Simula un leggero ritardo per l'animazione
+      setTimeout(() => {
+        const scelta = derive[Math.floor(Math.random() * derive.length)];
+        nome.textContent = scelta.nome;
+        desc.textContent = scelta.descrizione;
+        regola.textContent = scelta.regola;
+        
+        btn.classList.remove('loading');
+        // Trigger per l'animazione
+        setTimeout(() => box.classList.add('visible'), 50);
+      }, 300);
+    });
+  </script>
 </body>
 </html>
